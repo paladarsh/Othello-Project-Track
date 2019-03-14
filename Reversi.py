@@ -335,7 +335,7 @@ def gameplay():
                 print("Please try again!")
     if(now>nob):
         print("Player 2 wins.")
-    else if(nob>now):
+    elif(nob>now):
         print("Player 1 wins.")
     else:
         print("The match ends in a tie")
