@@ -6,12 +6,6 @@ def printf():
         for j in range(8):
             print(board[i][j],end=' ')
         print()
-def ispossible(player):
-    for i in range(8):
-        for j in range(8):
-            if(issafe(j,i,player)):
-               return True
-    return False
 def issafe(y,x,player):
     if (x>7 or y>7 or board[y][x]!=0):
         return False
@@ -221,7 +215,6 @@ def change(y,x,player):
             break
         if(boards[y-i][x+i]==player):
             pos=i
-            break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
@@ -238,7 +231,6 @@ def change(y,x,player):
             break
         if(boards[y-i][x-i]==player):
             pos=i
-            break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
@@ -255,7 +247,6 @@ def change(y,x,player):
             break
         if(boards[y+i][x+i]==player):
             pos=i
-            break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
@@ -272,7 +263,6 @@ def change(y,x,player):
             break
         if(boards[y+i][x-i]==player):
             pos=i
-            break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
@@ -293,14 +283,8 @@ def gameplay():
     flag=0
     now=2
     nob=2
-    total=60
-    while(n!=total):
+    while(n!=60):
         if(n%2):
-            if(not(ispossible(1))):
-               input("No Valid Moves for Player 1. Press any key to pass.")
-               total+=1
-               n+=1
-               continue
             m=(input("Player 1, Enter the position to be filled:"))            
             a=int(m[0])
             b=int(m[1])
@@ -315,11 +299,6 @@ def gameplay():
             else:
                 print("Please try again!")
         else:
-            if(not(ispossible(2))):
-               input("No Valid Moves for Player 2. Press any key to pass.")
-               total+=1
-               n+=1
-               continue
             m=(input("Player 2, Enter the position to be filled:"))            
             a=int(m[0])
             b=int(m[1])
@@ -335,7 +314,7 @@ def gameplay():
                 print("Please try again!")
     if(now>nob):
         print("Player 2 wins.")
-    elif(nob>now):
+    else if(nob>now):
         print("Player 1 wins.")
     else:
         print("The match ends in a tie")
