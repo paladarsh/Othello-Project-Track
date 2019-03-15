@@ -293,7 +293,7 @@ def gameplay():
     flag=0
     now=2
     nob=2
-    total=60
+    total=61
     while(n!=total):
         if(n%2):
             if(not(ispossible(1))):
