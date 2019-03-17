@@ -21,9 +21,9 @@ BLUE = ( 0, 0, 255)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 PURPLE = (255, 0, 255,128)
-CYAN = ( 0, 255, 255)
-BOARDCOLOR=ORANGE
-BOXCOLOR=RED
+LIGHTORANGE=(255,160,122)
+BOARDCOLOR=LIGHTORANGE
+BOXCOLOR=ORANGE
 COLOR1=BLACK
 COLOR2=WHITE
 def highlight(x,y,prx,pry):
@@ -334,6 +334,7 @@ def drawboard():
     for i in range(COLUMNS):
         for j in range(ROWS):
             pygame.draw.rect(StartWin, BOXCOLOR, (XMARGIN+j*(BOXSIZE+GAPSIZE),YMARGIN+i*(BOXSIZE+GAPSIZE),BOXSIZE,BOXSIZE))
+            
     pygame.draw.circle(StartWin,COLOR2,drawpiece(3,4),int(BOXSIZE/2-3))
     pygame.draw.circle(StartWin,COLOR2,drawpiece(4,3),int(BOXSIZE/2-3))
     pygame.draw.circle(StartWin,COLOR1,drawpiece(4,4),int(BOXSIZE/2-3))
