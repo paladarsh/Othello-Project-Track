@@ -1,10 +1,8 @@
 import pygame, sys
 from pygame.locals import *
-black=pygame.Color(255,0,0,128)
-spamRect = pygame.Rect(10, 20, 200, 300)
 FPS = 30
-WINDOWHEIGHT = 600
-WINDOWWIDTH = 600
+WINDOWHEIGHT = 700
+WINDOWWIDTH = 700
 BOXSIZE = 50
 GAPSIZE=10
 ROWS=8
@@ -12,10 +10,9 @@ COLUMNS=8
 BOARDWIDTH=BOXSIZE*COLUMNS+GAPSIZE*(COLUMNS-1)
 BOARDHEIGHT=BOXSIZE*ROWS+GAPSIZE*(ROWS-1)
 XMARGIN = int((WINDOWWIDTH - BOARDWIDTH) / 2)
-YMARGIN = int((WINDOWHEIGHT - BOARDHEIGHT) / 2)
-#print(XMARGIN,YMARGIN)
+YMARGIN = int((WINDOWHEIGHT - BOARDHEIGHT) / 2)+100
 BLACK=(0,0,0,128)
-GRAY = (100, 100, 100)
+GRAY = (225, 225, 225)
 NAVYBLUE = ( 60, 60, 100)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -23,15 +20,25 @@ GREEN = ( 0, 255, 0)
 BLUE = ( 0, 0, 255)
 YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
-PURPLE = (255, 0, 255)
+PURPLE = (255, 0, 255,128)
 CYAN = ( 0, 255, 255)
-BOARDCOLOR=GRAY
+BOARDCOLOR=ORANGE
+BOXCOLOR=RED
+COLOR1=BLACK
+COLOR2=WHITE
+def highlight(x,y,prx,pry):
+    #print(x,y)
+    if(x!=prx or y!=pry):
+        pygame.draw.rect(StartWin, BOARDCOLOR,(XMARGIN+prx*(BOXSIZE+GAPSIZE),YMARGIN+pry*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
+        pygame.draw.rect(StartWin, YELLOW,(XMARGIN+x*(BOXSIZE+GAPSIZE),YMARGIN+y*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
+
 def ispossible(player):
     for i in range(8):
         for j in range(8):
             if(issafe(j,i,player)):
                return True
     return False
+
 def issafe(y,x,player):
     if (x>7 or y>7 or board[y][x]!=0):
         return False
@@ -158,6 +165,7 @@ def issafe(y,x,player):
         #print("Bottom Left")
         return True
     return False
+
 def change(y,x,player):
     flag=False
     pos=-1
@@ -300,6 +308,7 @@ def change(y,x,player):
         for i in range(1,pos):
             board[y+i][x-i]=player
             putpiece(player,y+i,x-i)
+
 def find(player):
     c=0
     for i in range(8):
@@ -307,54 +316,72 @@ def find(player):
             if(board[i][j]==player):
                 c+=1
     return c
+
 def pixelstocoordinates(xx,yy):
     xp=(xx-int(XMARGIN))//int(BOXSIZE+GAPSIZE)
     yp=(yy-int(YMARGIN))//int(BOXSIZE+GAPSIZE)
     temp=(xp,yp)
+    #print(xx,yy)
     return temp
+
 def putpiece(player,y,x):
     if(player==1):
-        pygame.draw.circle(StartWin,WHITE,drawpiece(y,x),int(BOXSIZE/2-1))
+        pygame.draw.circle(StartWin,COLOR1,drawpiece(y,x),int(BOXSIZE/2-3))
     else:
-        pygame.draw.circle(StartWin,BLACK,drawpiece(y,x),int(BOXSIZE/2-1))
+        pygame.draw.circle(StartWin,COLOR2,drawpiece(y,x),int(BOXSIZE/2-3))
+
 def drawboard():
     for i in range(COLUMNS):
         for j in range(ROWS):
-            pygame.draw.rect(StartWin, CYAN, (XMARGIN+j*(BOXSIZE+GAPSIZE),YMARGIN+i*(BOXSIZE+GAPSIZE),BOXSIZE,BOXSIZE))
-    pygame.draw.circle(StartWin,WHITE,drawpiece(3,3),int(BOXSIZE/2-1))
-    pygame.draw.circle(StartWin,WHITE,drawpiece(4,4),int(BOXSIZE/2-1))
-    pygame.draw.circle(StartWin,BLACK,drawpiece(4,3),int(BOXSIZE/2-1))
-    pygame.draw.circle(StartWin,BLACK,drawpiece(3,4),int(BOXSIZE/2-1))
+            pygame.draw.rect(StartWin, BOXCOLOR, (XMARGIN+j*(BOXSIZE+GAPSIZE),YMARGIN+i*(BOXSIZE+GAPSIZE),BOXSIZE,BOXSIZE))
+    pygame.draw.circle(StartWin,COLOR2,drawpiece(3,4),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR2,drawpiece(4,3),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR1,drawpiece(4,4),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR1,drawpiece(3,3),int(BOXSIZE/2-3))
+
 def drawpiece(y,x):
     t=(int(XMARGIN+x*(BOXSIZE+GAPSIZE)+BOXSIZE/2),int(YMARGIN+y*(BOXSIZE+GAPSIZE)+BOXSIZE/2))
     return t
+
 def start():
     board[4][4]=1
     board[3][3]=1
     board[4][3]=2
     board[3][4]=2
+
 def gameplay():
     global FPSClock,StartWin,n,total
-    mouseClicked = False
+    FPSCLOCK=pygame.time.Clock()
     pygame.init()
-    StartWin = pygame.display.set_mode((WINDOWHEIGHT,WINDOWWIDTH)) #DisplaySurface
-    mousex = 0
-    mousey = 0
+    StartWin=pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT)) #DisplaySurface
+    ScoreImg=pygame.image.load('Scoreboard.png')
+    ScoreImg = pygame.transform.scale(ScoreImg,(350,150))
+    ScoreRect=ScoreImg.get_rect()
+    ScoreRect.center=((WINDOWWIDTH/2,100))
+    mousex=0
+    mousey=0
     n=1
-    flag=0
     now=2
     nob=2
+    px=0
+    py=0
     total=61
-    chance=0
-    #firstSelection = None # stores the (x, y) of the first box clicked.
-    fontObj = pygame.font.Font('freesansbold.ttf', 32)
-    textSurfaceObj = fontObj.render('OTHELLO', True,WHITE,BLACK)
-    textRectObj = textSurfaceObj.get_rect()
-    textRectObj.center = (WINDOWWIDTH/2,20)
-    pygame.display.set_caption('Reversi')
-    StartWin.fill(BLACK)
+    StartWin.fill(BOARDCOLOR)
     drawboard()
-    StartWin.blit(textSurfaceObj, textRectObj)
+    #StartWin.blit(textSurfaceObj, textRectObj)
+    StartWin.blit(ScoreImg,ScoreRect)
+    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),90),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),90),int(BOXSIZE/2-3))
+    BlackObj = pygame.font.Font('calibri.ttf', 40)
+    BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
+    BlackRectObj = BlackSurfaceObj.get_rect()
+    BlackRectObj.center = (WINDOWWIDTH/2-75,135)
+    WhiteObj = pygame.font.Font('calibri.ttf', 40)
+    WhiteSurfaceObj = WhiteObj.render(str(now), True,WHITE,GRAY)
+    WhiteRectObj = WhiteSurfaceObj.get_rect()
+    WhiteRectObj.center = (WINDOWWIDTH/2+75,135)
+    StartWin.blit(BlackSurfaceObj,BlackRectObj)
+    StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
     while(True):
         for event in pygame.event.get():
             if(n%2):
@@ -366,6 +393,11 @@ def gameplay():
                 sys.exit()
             elif event.type == MOUSEMOTION:
                 mx, my = event.pos
+                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8):
+                    px,py=mousex,mousey
+                mousex,mousey=pixelstocoordinates(mx,my)
+                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8):
+                    highlight(mousex,mousey,px,py)
             elif event.type == MOUSEBUTTONUP:
                 mx, my = event.pos
                 mousex,mousey=pixelstocoordinates(mx,my)
@@ -380,6 +412,19 @@ def gameplay():
                     putpiece(current,mousey,mousex)
                     nob=find(1)
                     now=find(2)
+                    BlackObj = pygame.font.Font('calibri.ttf', 40)
+                    BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
+                    BlackRectObj = BlackSurfaceObj.get_rect()
+                    BlackRectObj.center = (WINDOWWIDTH/2-75,135)
+                    WhiteObj = pygame.font.Font('calibri.ttf', 40)
+                    WhiteSurfaceObj = WhiteObj.render(str(now), True,WHITE,GRAY)
+                    WhiteRectObj = WhiteSurfaceObj.get_rect()
+                    WhiteRectObj.center = (WINDOWWIDTH/2+75,135)
+                    StartWin.blit(ScoreImg,ScoreRect)
+                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),90),int(BOXSIZE/2-3))
+                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),90),int(BOXSIZE/2-3))
+                    StartWin.blit(BlackSurfaceObj,BlackRectObj)
+                    StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
                 if(n==total):
                     if(now>nob):
                         print("Player 2 wins.")
@@ -390,6 +435,7 @@ def gameplay():
                     pygame.quit()
                     sys.exit()
         pygame.display.update()
+        FPSCLOCK.tick(FPS)
 board=[[0 for i in range(8)] for i in range(8)]
 start()
 gameplay()
