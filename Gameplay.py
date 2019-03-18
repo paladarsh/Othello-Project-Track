@@ -22,7 +22,7 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 PURPLE = (255, 0, 255,128)
 LIGHTORANGE=(255,160,122)
-BOARDCOLOR=LIGHTORANGE
+BOARDCOLOR=NAVYBLUE
 BOXCOLOR=ORANGE
 COLOR1=BLACK
 COLOR2=WHITE
@@ -349,16 +349,30 @@ def start():
     board[3][3]=1
     board[4][3]=2
     board[3][4]=2
-
+    
+def win(now,nob):
+    if(now>nob):
+        toprint="Player 2 wins."
+    elif(nob>now):
+        toprint="Player 1 wins."
+    else:
+        toprint="The match ends in a tie"
+    FinalObj = pygame.font.Font('calibri.ttf', 70)
+    FinalSurfaceObj = FinalObj.render(toprint, True,BLACK,WHITE)
+    FinalRectObj = FinalSurfaceObj.get_rect()
+    FinalRectObj.center = (WINDOWWIDTH/2,WINDOWHEIGHT/2)
+    StartWin.blit(FinalSurfaceObj,FinalRectObj)
 def gameplay():
     global FPSClock,StartWin,n,total
     FPSCLOCK=pygame.time.Clock()
     pygame.init()
-    StartWin=pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT)) #DisplaySurface
+    BackImg=pygame.image.load('Background.jpg')
+    BackImg = pygame.transform.scale(BackImg, (700, 700))
+    StartWin=pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
     ScoreImg=pygame.image.load('Scoreboard.png')
     ScoreImg = pygame.transform.scale(ScoreImg,(350,150))
     ScoreRect=ScoreImg.get_rect()
-    ScoreRect.center=((WINDOWWIDTH/2,100))
+    ScoreRect.center=((WINDOWWIDTH/2,75))
     mousex=0
     mousey=0
     n=1
@@ -367,28 +381,38 @@ def gameplay():
     px=0
     py=0
     total=61
-    StartWin.fill(BOARDCOLOR)
+    StartWin.blit(BackImg,(0,0))
+    pygame.draw.rect(StartWin,BOARDCOLOR,(XMARGIN-GAPSIZE,YMARGIN-GAPSIZE,BOXSIZE*COLUMNS+GAPSIZE*(ROWS+1),BOXSIZE*ROWS+GAPSIZE*(COLUMNS+1)))
     drawboard()
-    #StartWin.blit(textSurfaceObj, textRectObj)
     StartWin.blit(ScoreImg,ScoreRect)
-    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),90),int(BOXSIZE/2-3))
-    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),90),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),65),int(BOXSIZE/2-3))
+    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),65),int(BOXSIZE/2-3))
     BlackObj = pygame.font.Font('calibri.ttf', 40)
     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
     BlackRectObj = BlackSurfaceObj.get_rect()
-    BlackRectObj.center = (WINDOWWIDTH/2-75,135)
+    BlackRectObj.center = (WINDOWWIDTH/2-75,110)
     WhiteObj = pygame.font.Font('calibri.ttf', 40)
     WhiteSurfaceObj = WhiteObj.render(str(now), True,WHITE,GRAY)
     WhiteRectObj = WhiteSurfaceObj.get_rect()
-    WhiteRectObj.center = (WINDOWWIDTH/2+75,135)
+    WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
+    TurnObj = pygame.font.Font('calibri.ttf', 40)
+    TurnSurfaceObj = TurnObj.render('Player 1\'s turn', True,BLACK,WHITE)
+    TurnRectObj = TurnSurfaceObj.get_rect()
+    TurnRectObj.center = (WINDOWWIDTH/2,175)
     StartWin.blit(BlackSurfaceObj,BlackRectObj)
     StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
+    StartWin.blit(TurnSurfaceObj,TurnRectObj)
     while(True):
         for event in pygame.event.get():
             if(n%2):
                 current=1
             else:
                 current=2
+            pr='Player '+str(current%2+1)+'\'s turn'
+            TurnObj = pygame.font.Font('calibri.ttf', 40)
+            TurnSurfaceObj = TurnObj.render(pr, True,BLACK,WHITE)
+            TurnRectObj = TurnSurfaceObj.get_rect()
+            TurnRectObj.center = (WINDOWWIDTH/2,175)
             if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
                 pygame.quit()
                 sys.exit()
@@ -416,25 +440,19 @@ def gameplay():
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()
-                    BlackRectObj.center = (WINDOWWIDTH/2-75,135)
+                    BlackRectObj.center = (WINDOWWIDTH/2-75,110)
                     WhiteObj = pygame.font.Font('calibri.ttf', 40)
                     WhiteSurfaceObj = WhiteObj.render(str(now), True,WHITE,GRAY)
                     WhiteRectObj = WhiteSurfaceObj.get_rect()
-                    WhiteRectObj.center = (WINDOWWIDTH/2+75,135)
+                    WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
                     StartWin.blit(ScoreImg,ScoreRect)
-                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),90),int(BOXSIZE/2-3))
-                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),90),int(BOXSIZE/2-3))
+                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),65),int(BOXSIZE/2-3))
+                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),65),int(BOXSIZE/2-3))
                     StartWin.blit(BlackSurfaceObj,BlackRectObj)
                     StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
+                    StartWin.blit(TurnSurfaceObj,TurnRectObj)
                 if(n==total):
-                    if(now>nob):
-                        print("Player 2 wins.")
-                    elif(nob>now):
-                        print("Player 1 wins.")
-                    else:
-                        print("The match ends in a tie")
-                    pygame.quit()
-                    sys.exit()
+                    win(now,nob)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 board=[[0 for i in range(8)] for i in range(8)]

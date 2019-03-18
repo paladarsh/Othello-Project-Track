@@ -15,7 +15,44 @@ ORANGE = (255, 128, 0)
 PURPLE = (255,0,255,128)
 CYAN = (0, 255, 255)
 TAN=(210,180,140)
+
+def SureToExit(kind):
+    SureSurf=pygame.display.set_mode((700,300))
+    SureImg=pygame.image.load('Sure.png')
+    SureImg = pygame.transform.scale(SureImg, (700, 300))
+    SureSurf.blit(SureImg,(0,0))
+    SureObj = pygame.font.Font('calibri.ttf', 32)
+    SureSurfaceObj = SureObj.render('Are you sure you want to quit?', True,WHITE,BLACK)
+    SureRectObj = SureSurfaceObj.get_rect()
+    SureRectObj.center = (WINDOWWIDTH/2,100)
+    YesObj = pygame.font.Font('calibri.ttf', 32)
+    YesSurfaceObj = YesObj.render('Yes', True,WHITE,BLACK)
+    YesRectObj = YesSurfaceObj.get_rect()
+    YesRectObj.center = (WINDOWWIDTH/2-100,200)
+    NoObj = pygame.font.Font('calibri.ttf', 32)
+    NoSurfaceObj = NoObj.render('No', True,WHITE,BLACK)
+    NoRectObj = NoSurfaceObj.get_rect()
+    NoRectObj.center = (WINDOWWIDTH/2+100,200)
+    FirstWin.blit(SureSurfaceObj,SureRectObj)
+    FirstWin.blit(YesSurfaceObj,YesRectObj)
+    FirstWin.blit(NoSurfaceObj,NoRectObj)
+    while(True):
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONUP:
+                nx, ny = event.pos
+                if(YesRectObj.collidepoint(nx,ny)):
+                    pygame.quit()
+                    sys.exit()
+                if(NoRectObj.collidepoint(nx,ny)):
+                    if(kind==1):
+                        First()
+                    elif(kind==2):
+                        NextWin()
+        pygame.display.update()
+        
 def NextWin():
+    FirstWin=pygame.display.set_mode((WINDOWHEIGHT,WINDOWWIDTH))
+    FirstWin.blit(OthelloImg,(0,0))
     VsCompImg=pygame.image.load('1 Player.png')
     VsCompRect=VsCompImg.get_rect()
     VsPlayerImg=pygame.image.load('2 Player.png')
@@ -27,16 +64,16 @@ def NextWin():
     while(True):
         for event in pygame.event.get():
             if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
-                    pygame.quit()
-                    sys.exit()
+                    SureToExit(2)
             elif event.type == MOUSEBUTTONUP:
                 mox, moy = event.pos
                 if(VsPlayerRect.collidepoint(mox,moy)):
                     import Gameplay
         pygame.display.update()
         FPSClock.tick(FPS)
+
 def First():
-    global FPSClock,FirstWin
+    global FPSClock,FirstWin,OthelloImg
     pygame.font.init()
     FPSClock=pygame.time.Clock()
     FirstWin=pygame.display.set_mode((WINDOWHEIGHT,WINDOWWIDTH))
@@ -67,16 +104,14 @@ def First():
     while(True):
         for event in pygame.event.get():
             if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
-                    pygame.quit()
-                    sys.exit()
+                    SureToExit(1)
             elif event.type == MOUSEBUTTONUP:
                 mx, my = event.pos
                 if(NewGameRect.collidepoint(mx,my)):
                     FirstWin.blit(OthelloImg,(0,0))
                     NextWin()
                 elif(ExitRect.collidepoint(mx,my)):
-                    pygame.quit()
-                    sys.exit()
+                    SureToExit(1)
         pygame.display.update()
         FPSClock.tick(FPS)
 First()
