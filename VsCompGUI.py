@@ -642,10 +642,11 @@ def gameplay():
                         total+=1
                         n+=1
                         continue
-                    '''for i in range(8):
+                    for i in range(8):
                         for j in range(8):
                             print(board[i][j],end=" ")
-                        print()'''
+                        print()
+                    print()
                     for i in range(100000):
                         pass
                     moy,mox=think()
@@ -656,10 +657,11 @@ def gameplay():
                     nob=find(1,board)
                     now=find(2,board)
                     print()
-                    '''for i in range(8):
+                    for i in range(8):
                         for j in range(8):
                             print(board[i][j],end=" ")
-                        print()'''
+                        print()
+                    print()
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()

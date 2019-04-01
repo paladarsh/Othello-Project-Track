@@ -69,6 +69,8 @@ def NextWin():
                 mox, moy = event.pos
                 if(VsPlayerRect.collidepoint(mox,moy)):
                     import Gameplay
+                elif(VsCompRect.collidepoint(mox,moy)):
+                    import VsCompGUI
         pygame.display.update()
         FPSClock.tick(FPS)
 
