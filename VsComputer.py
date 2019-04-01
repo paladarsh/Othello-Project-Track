@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys,time
 from pygame.locals import *
 FPS = 30
 WINDOWHEIGHT = 700
@@ -35,12 +35,12 @@ def highlight(x,y,prx,pry):
 def ispossible(player):
     for i in range(8):
         for j in range(8):
-            if(issafe(j,i,player)):
+            if(issafe(j,i,player,board)):
                return True
     return False
 
-def issafe(y,x,player):
-    if (x>7 or y>7 or board[y][x]!=0):
+def issafe(y,x,player,givenboard):
+    if (x>7 or y>7 or givenboard[y][x]!=0):
         return False
     flag=False
     pos=-1
@@ -309,14 +309,61 @@ def change(y,x,player):
             board[y+i][x-i]=player
             putpiece(player,y+i,x-i)
 
-def find(player):
+def find(player,thisboard):
     c=0
     for i in range(8):
         for j in range(8):
-            if(board[i][j]==player):
+            if(thisboard[i][j]==player):
                 c+=1
     return c
 
+def think():
+    global final
+    final=0
+    boards=[[0 for i in range(8)]for i in range(8)]
+    for i in range(8):
+        for j in range(8):
+            boards[i][j]=board[i][j]
+    total=0
+    bestx,besty=0,0
+    besttotal=-64
+    for i in range(8):
+        for j in range(8):
+            if(issafe(i,j,2,boards)):
+                rec(2,1,-64,0,boards)
+                if(besttotal<final):
+                    besttotal=final
+                    besty=i
+                    bestx=j
+    return (besty,bestx)
+def rec(player,number,maxormin,total,presboard):
+    if(number==2):
+        final=total
+        return
+    if(player==2):
+        for i in range(8):
+            for j in range(8):
+                if(issafe(i,j,2,presboard)):
+                    presboard[i][j]=2
+                    if(maxormin<find(2,presboard)-find(1,presboard)):
+                        maxormin=find(2,presboard)-find(1,presboard)
+                        posy=i
+                        posx=j
+                    presboard[i][j]=0
+        presboard[posy][posx]=2
+        rec(1,number+1,-64,total+maxormin,presboard)
+    else:
+        for i in range(8):
+            for j in range(8):
+                if(issafe(i,j,1,presboard)):
+                    presboard[i][j]=1
+                    if(maxormin<find(2,presboard)-find(1,presboard)):
+                        maxormin=find(2,presboard)-find(1,presboard)
+                        posy=i
+                        posx=j
+                    presboard[i][j]=0
+        presboard[posy][posx]=1
+        rec(2,number+1,-64,total-maxormin,presboard)
 def pixelstocoordinates(xx,yy):
     xp=(xx-int(XMARGIN))//int(BOXSIZE+GAPSIZE)
     yp=(yy-int(YMARGIN))//int(BOXSIZE+GAPSIZE)
@@ -398,7 +445,7 @@ def gameplay():
     WhiteRectObj = WhiteSurfaceObj.get_rect()
     WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
     TurnObj = pygame.font.Font('calibri.ttf', 40)
-    TurnSurfaceObj = TurnObj.render('Player 1\'s turn', True,BLACK,WHITE)
+    TurnSurfaceObj = TurnObj.render('Player \'s turn', True,BLACK,WHITE)
     TurnRectObj = TurnSurfaceObj.get_rect()
     TurnRectObj.center = (WINDOWWIDTH/2,175)
     StartWin.blit(BlackSurfaceObj,BlackRectObj)
@@ -406,11 +453,7 @@ def gameplay():
     StartWin.blit(TurnSurfaceObj,TurnRectObj)
     while(True):
         for event in pygame.event.get():
-            if(n%2):
-                current=1
-            else:
-                current=2
-            pr='Player '+str(current%2+1)+'\'s turn'
+            pr='Player\'s Turn'
             TurnObj = pygame.font.Font('calibri.ttf', 40)
             TurnSurfaceObj = TurnObj.render(pr, True,BLACK,WHITE)
             TurnRectObj = TurnSurfaceObj.get_rect()
@@ -428,17 +471,16 @@ def gameplay():
             elif event.type == MOUSEBUTTONUP:
                 mx, my = event.pos
                 mousex,mousey=pixelstocoordinates(mx,my)
-                if(not(ispossible(current))):
+                if(not(ispossible(1))):
                     total+=1
                     n+=1
-                    continue
-                if(issafe(mousey,mousex,current)):
-                    board[mousey][mousex]=current
+                elif(issafe(mousey,mousex,1,board)):
+                    board[mousey][mousex]=1
                     n+=1
-                    change(mousey,mousex,current)
-                    putpiece(current,mousey,mousex)
-                    nob=find(1)
-                    now=find(2)
+                    change(mousey,mousex,1)
+                    putpiece(1,mousey,mousex)
+                    nob=find(1,board)
+                    now=find(2,board)
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()
@@ -453,8 +495,36 @@ def gameplay():
                     StartWin.blit(BlackSurfaceObj,BlackRectObj)
                     StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
                     StartWin.blit(TurnSurfaceObj,TurnRectObj)
-                if(n==total):
-                    win(now,nob)
+                else:
+                    continue
+                if(not(ispossible(2))):
+                    total+=1
+                    n+=1
+                    continue
+                else:
+                    (mousey,mousex)=think()
+                    board[mousey][mousex]=2
+                    n+=1
+                    change(mousey,mousex,2)
+                    putpiece(2,mousey,mousex)
+                    nob=find(1,board)
+                    now=find(2,board)
+                    BlackObj = pygame.font.Font('calibri.ttf', 40)
+                    BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
+                    BlackRectObj = BlackSurfaceObj.get_rect()
+                    BlackRectObj.center = (WINDOWWIDTH/2-75,110)
+                    WhiteObj = pygame.font.Font('calibri.ttf', 40)
+                    WhiteSurfaceObj = WhiteObj.render(str(now), True,WHITE,GRAY)
+                    WhiteRectObj = WhiteSurfaceObj.get_rect()
+                    WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
+                    StartWin.blit(ScoreImg,ScoreRect)
+                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),65),int(BOXSIZE/2-3))
+                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),65),int(BOXSIZE/2-3))
+                    StartWin.blit(BlackSurfaceObj,BlackRectObj)
+                    StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
+                    StartWin.blit(TurnSurfaceObj,TurnRectObj)
+                    if(n==total):
+                        win(now,nob)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 board=[[0 for i in range(8)] for i in range(8)]
