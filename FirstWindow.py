@@ -1,4 +1,4 @@
-import pygame,sys
+import pygame,sys,os
 from pygame.locals import *
 FPS = 30
 WINDOWHEIGHT = 700
@@ -15,7 +15,11 @@ ORANGE = (255, 128, 0)
 PURPLE = (255,0,255,128)
 CYAN = (0, 255, 255)
 TAN=(210,180,140)
-
+icon=pygame.image.load('GameIcons.png')
+pygame.display.set_icon(icon)
+posix = 300
+posiy = 25
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (posix,posiy)
 def SureToExit(kind):
     SureSurf=pygame.display.set_mode((700,300))
     SureImg=pygame.image.load('Sure.png')
@@ -69,6 +73,8 @@ def NextWin():
                 mox, moy = event.pos
                 if(VsPlayerRect.collidepoint(mox,moy)):
                     import Gameplay
+                elif(VsCompRect.collidepoint(mox,moy)):
+                    import VsCompGUI
         pygame.display.update()
         FPSClock.tick(FPS)
 
