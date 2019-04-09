@@ -177,7 +177,7 @@ def think():
     return (y,x)
 
 def rec(presboard,player,depth):
-    if(depth==2):
+    if(depth==3):
         bestval=-64
         (besty,bestx)=(-2,-2)
         forthisrec=copy(presboard)
