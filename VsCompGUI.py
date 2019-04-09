@@ -28,6 +28,8 @@ COLOR1=BLACK
 COLOR2=WHITE
 def highlight(x,y,prx,pry):
     #print(x,y)
+    if n==total:
+        return
     if(x!=prx or y!=pry):
         pygame.draw.rect(StartWin, BOARDCOLOR,(XMARGIN+prx*(BOXSIZE+GAPSIZE),YMARGIN+pry*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
         pygame.draw.rect(StartWin, YELLOW,(XMARGIN+x*(BOXSIZE+GAPSIZE),YMARGIN+y*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
@@ -177,8 +179,8 @@ def think():
     return (y,x)
 
 def rec(presboard,player,depth):
-    if(depth==3):
-        bestval=-64
+    if(depth==2):
+        worstval=64
         (besty,bestx)=(-2,-2)
         forthisrec=copy(presboard)
         #Computer's chance
@@ -187,14 +189,14 @@ def rec(presboard,player,depth):
                 if(issafe(i,j,2,forthisrec)):
                         change(i,j,2,forthisrec)
                         value=find(2,forthisrec)-find(1,forthisrec)
-                        if(value>bestval):
-                            bestval=value
+                        if(value<worstval):
+                            worstval=value
                             (besty,bestx)=(i,j)
                             forthisrec=copy(presboard)
-        return (bestval,besty,bestx)
+        return (worstval,besty,bestx)
     else:
         if(player==1):
-            bestval=64
+            bestval=-64
             (besty,bestx)=(-2,-2)
             rety,retx=0,0
             forthisrec=copy(presboard)
@@ -203,7 +205,7 @@ def rec(presboard,player,depth):
                     if(issafe(i,j,1,forthisrec)):
                             change(i,j,1,forthisrec)
                             (value,rety,retx)=rec(forthisrec,2,depth+1)
-                            if(value<bestval):
+                            if(value>bestval):
                                 bestval=value
                                 (besty,bestx)=(i,j)
                             forthisrec=copy(presboard)
@@ -585,7 +587,7 @@ def gameplay():
     WhiteRectObj = WhiteSurfaceObj.get_rect()
     WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
     TurnObj = pygame.font.Font('calibri.ttf', 40)
-    TurnSurfaceObj = TurnObj.render('Player\'s turn', True,BLACK,WHITE)
+    TurnSurfaceObj = TurnObj.render('  Player\'s turn  ', True,BLACK,WHITE)
     TurnRectObj = TurnSurfaceObj.get_rect()
     TurnRectObj.center = (WINDOWWIDTH/2,175)
     StartWin.blit(BlackSurfaceObj,BlackRectObj)
@@ -593,7 +595,9 @@ def gameplay():
     StartWin.blit(TurnSurfaceObj,TurnRectObj)
     while(True):
         for event in pygame.event.get():
-            pr='Player\'s turn'
+            if(n==total):
+                win(now,nob)
+            pr='    Player\'s turn     '
             TurnObj = pygame.font.Font('calibri.ttf', 40)
             TurnSurfaceObj = TurnObj.render(pr, True,BLACK,WHITE)
             TurnRectObj = TurnSurfaceObj.get_rect()
@@ -601,14 +605,14 @@ def gameplay():
             if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
                     pygame.quit()
                     sys.exit()
-            elif event.type == MOUSEMOTION:
+            elif event.type == MOUSEMOTION and gameover==False:
                 mx, my = event.pos
                 if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8):
                     px,py=mousex,mousey
                 mousex,mousey=pixelstocoordinates(mx,my)
-                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8 and not gameover):
+                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8 and gameover==False):
                     highlight(mousex,mousey,px,py)
-            elif event.type == MOUSEBUTTONUP:
+            elif event.type == MOUSEBUTTONUP and gameover==False:
                 mx, my = event.pos
                 mousex,mousey=pixelstocoordinates(mx,my)
                 if(not(ispossible(1))):
@@ -642,11 +646,24 @@ def gameplay():
                         total+=1
                         n+=1
                         continue
-                    ''''for i in range(8):
-                        for j in range(8):
-                            print(board[i][j],end=" ")
-                        print()
-                    print()'''
+                        StartWin.blit(ScoreImg,ScoreRect)
+                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),65),int(BOXSIZE/2-3))
+                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),65),int(BOXSIZE/2-3))
+                    BlackObjs = pygame.font.Font('calibri.ttf', 40)
+                    BlackSurfaceObjs = BlackObjs.render(str(nob), True,BLACK,WHITE)
+                    BlackRectObjs = BlackSurfaceObjs.get_rect()
+                    BlackRectObjs.center = (WINDOWWIDTH/2-75,110)
+                    WhiteObjs = pygame.font.Font('calibri.ttf', 40)
+                    WhiteSurfaceObjs = WhiteObjs.render(str(now), True,WHITE,GRAY)
+                    WhiteRectObjs = WhiteSurfaceObjs.get_rect()
+                    WhiteRectObjs.center = (WINDOWWIDTH/2+75,110)
+                    TurnObjs = pygame.font.Font('calibri.ttf', 40)
+                    TurnSurfaceObjs = TurnObjs.render('Computer\'s turn', True,BLACK,WHITE)
+                    TurnRectObjs = TurnSurfaceObjs.get_rect()
+                    TurnRectObjs.center = (WINDOWWIDTH/2,175)
+                    StartWin.blit(BlackSurfaceObjs,BlackRectObjs)
+                    StartWin.blit(WhiteSurfaceObjs,WhiteRectObjs)
+                    StartWin.blit(TurnSurfaceObjs,TurnRectObjs)
                     pygame.display.update()
                     pygame.time.delay(1000)
                     moy,mox=think()
@@ -656,11 +673,7 @@ def gameplay():
                     putpiece(2,moy,mox)
                     nob=find(1,board)
                     now=find(2,board)
-                    '''for i in range(8):
-                        for j in range(8):
-                            print(board[i][j],end=" ")
-                        print()
-                    print()'''
+                    print()
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()
