@@ -1,4 +1,4 @@
-import pygame, sys
+import pygame, sys,time
 from pygame.locals import *
 FPS = 30
 WINDOWHEIGHT = 700
@@ -22,67 +22,16 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 PURPLE = (255, 0, 255,128)
 LIGHTORANGE=(255,160,122)
-CYAN = (0, 255, 255)
-TAN=(210,180,140)
 BOARDCOLOR=NAVYBLUE
 BOXCOLOR=ORANGE
 COLOR1=BLACK
 COLOR2=WHITE
-def ChooseWin():
-    global FPSClock,FirstWin,OthelloImg
-    pygame.font.init()
-    FPSClock=pygame.time.Clock()
-    FirstWin=pygame.display.set_mode((WINDOWHEIGHT,WINDOWWIDTH))
-    OthelloImg=pygame.image.load('Othello.jpg')
-    OthelloImg = pygame.transform.scale(OthelloImg, (700, 700))
-    MinimaxAlphaImg=pygame.image.load('Button.png')
-    MinimaxAlphaRect=MinimaxAlphaImg.get_rect()
-    MinimaxAlphaObj = pygame.font.Font('calibri.ttf', 32)
-    MinimaxAlphaSurfaceObj = MinimaxAlphaObj.render('Minimax', True,BLACK,TAN)
-    MinimaxAlphaRectObj = MinimaxAlphaSurfaceObj.get_rect()
-    MinimaxAlphaRectObj.center = (WINDOWWIDTH/2,300)
-    PropagationImg=pygame.image.load('Button.png')
-    PropagationRect=PropagationImg.get_rect()
-    PropagationObj = pygame.font.Font('calibri.ttf', 32)
-    PropagationSurfaceObj = PropagationObj.render('Back Propagation', True,BLACK,TAN)
-    PropagationRectObj = PropagationSurfaceObj.get_rect()
-    PropagationRectObj.center = (WINDOWWIDTH/2,400)
-    pygame.init()
-    pygame.display.set_caption('OTHELLO')
-    FirstWin.fill(WHITE)
-    MinimaxAlphaRect.center=(WINDOWWIDTH/2,300)
-    PropagationRect.center=(WINDOWWIDTH/2,400)
-    FirstWin.blit(OthelloImg,(0,0))
-    FirstWin.blit(MinimaxAlphaImg,MinimaxAlphaRect)
-    FirstWin.blit(PropagationImg,PropagationRect)
-    FirstWin.blit(MinimaxAlphaSurfaceObj,MinimaxAlphaRectObj)
-    FirstWin.blit(PropagationSurfaceObj,PropagationRectObj)
-    while(True):
-        for event in pygame.event.get():
-            if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
-                pygame.quit()
-            elif event.type == MOUSEBUTTONUP:
-                mx, my = event.pos
-                FirstWin.blit(OthelloImg,(0,0))
-                if(MinimaxAlphaRect.collidepoint(mx,my)):
-                    gameplay(1)
-                elif(PropagationRect.collidepoint(mx,my)):
-                    gameplay(2)
-        pygame.display.update()
-        FPSClock.tick(FPS)
 def highlight(x,y,prx,pry):
     #print(x,y)
-    if n==total:
-        return
     if(x!=prx or y!=pry):
         pygame.draw.rect(StartWin, BOARDCOLOR,(XMARGIN+prx*(BOXSIZE+GAPSIZE),YMARGIN+pry*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
         pygame.draw.rect(StartWin, YELLOW,(XMARGIN+x*(BOXSIZE+GAPSIZE),YMARGIN+y*(BOXSIZE+GAPSIZE), BOXSIZE, BOXSIZE), 4)
-def copy(froms):
-    to=[[0 for i in range(8)]for i in range(8)]
-    for i in range(8):
-        for j in range(8):
-            to[i][j]=froms[i][j]
-    return to
+
 def ispossible(player):
     for i in range(8):
         for j in range(8):
@@ -97,13 +46,13 @@ def issafe(y,x,player,givenboard):
     pos=-1
     #finding nearest position of same colour to the right
     for i in range(x+2,8):
-        if(givenboard[y][i]==player):
+        if(board[y][i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(x+1,pos):
-            if(givenboard[y][i]!=player%2+1):
+            if(board[y][i]!=player%2+1):
                 flag=False
                 break
     if(flag==True):
@@ -112,13 +61,13 @@ def issafe(y,x,player,givenboard):
     pos=-1
     #finding nearest position of same colour to the left
     for i in range(x-2,-1,-1):
-        if(givenboard[y][i]==player):
+        if(board[y][i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(pos+1,x):
-            if(givenboard[y][i]!=player%2+1):
+            if(board[y][i]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Left")
@@ -126,13 +75,13 @@ def issafe(y,x,player,givenboard):
     pos=-1
     #finding nearest position of same colour to the bottom
     for i in range(y+2,8):
-        if(givenboard[i][x]==player):
+        if(board[i][x]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(y+1,pos):
-            if(givenboard[i][x]!=player%2+1):
+            if(board[i][x]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Bottom")
@@ -140,13 +89,13 @@ def issafe(y,x,player,givenboard):
     pos=-1
     #finding nearest position of same colour to the top
     for i in range(y-2,-1,-1):
-        if(givenboard[i][x]==player):
+        if(board[i][x]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(pos+1,y):
-            if(givenboard[i][x]!=player%2+1):
+            if(board[i][x]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Top")
@@ -156,29 +105,29 @@ def issafe(y,x,player,givenboard):
     for i in range(2,9):
         if(x+i>7 or y-i<0):
             break
-        if(givenboard[y-i][x+i]==player):
+        if(board[y-i][x+i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
-            if(givenboard[y-i][x+i]!=player%2+1):
+            if(board[y-i][x+i]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Top Right")
         return True
     pos=-1
-    #ging nearest position of same colour on top left
+    #finding nearest position of same colour on top left
     for i in range(2,9):
         if(x-i<0 or y-i<0):
             break
-        if(givenboard[y-i][x-i]==player):
+        if(board[y-i][x-i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
-            if(givenboard[y-i][x-i]!=player%2+1):
+            if(board[y-i][x-i]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Top Left")
@@ -188,13 +137,13 @@ def issafe(y,x,player,givenboard):
     for i in range(2,9):
         if(x+i>7 or y+i>7):
             break
-        if(givenboard[y+i][x+i]==player):
+        if(board[y+i][x+i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
-            if(givenboard[y+i][x+i]!=player%2+1):
+            if(board[y+i][x+i]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Bottom Right")
@@ -204,268 +153,20 @@ def issafe(y,x,player,givenboard):
     for i in range(2,9):
         if(x-i<0 or y+i>7):
             break
-        if(givenboard[y+i][x-i]==player):
+        if(board[y+i][x-i]==player):
             pos=i
             break
     if(pos!=-1):
         flag=True
         for i in range(1,pos):
-            if(givenboard[y+i][x-i]!=player%2+1):
+            if(board[y+i][x-i]!=player%2+1):
                 flag=False
     if(flag==True):
         #print("Bottom Left")
         return True
     return False
-def printf():
-    for i in range(8):
-        for j in range(8):
-            print(board[i][j],end=" ")
-        print()
-    print()
-def thinks():
-    boards=copy(board)
-    (values,y,x)=minimax(boards,2,0,-64,64)
-    return (y,x)
-def think():
-    boards=copy(board)
-    (values,y,x)=rec(boards,2,1)
-    return (y,x)
-def minimax(presboard,player,depth,alpha,beta):
-    if(depth==6):
-        forthisrec=presboard
-        value=find(2,forthisrec)-find(1,forthisrec)
-        return (value,-2,-2)
-    else:
-        if(player==1):#Player:Minimizing Player
-            bestval=64
-            (besty,bestx)=(-2,-2)
-            rety,retx=0,0
-            count=0
-            flag=0
-            forthisrec=copy(presboard)
-            for i in range(8):
-                for j in range(8):
-                    if(issafe(i,j,1,forthisrec)):
-                            if(count==0):
-                                besty,bestx=i,j
-                                count=1
-                            change(i,j,1,forthisrec)
-                            (value,rety,retx)=minimax(forthisrec,2,depth+1,alpha,beta)
-                            if(value<bestval):
-                                bestval=value
-                                (besty,bestx)=(i,j)
-                            beta=min(beta,bestval)
-                            if(beta<=alpha):
-                                flag=1
-                            forthisrec=copy(presboard)
-                if(flag==1):
-                    break
-            return (bestval,besty,bestx)
-        elif(player==2): #Computer:Maximizing Player 
-            bestval=-64
-            (besty,bestx)=(-2,-2)
-            rety,retx=0,0
-            count=0
-            flag=0
-            forthisrec=copy(presboard)
-            for i in range(8):
-                for j in range(8):
-                    if(issafe(i,j,2,forthisrec)):
-                        if(count==0):
-                            besty,bestx=i,j
-                            count=1
-                        change(i,j,2,forthisrec)
-                        (value,rety,retx)=minimax(forthisrec,1,depth+1,alpha,beta)
-                        if(value>bestval):
-                            bestval=value
-                            (besty,bestx)=(i,j)
-                        alpha=max(alpha,bestval)
-                        if(beta<=alpha):
-                            flag=1
-                        forthisrec=copy(presboard)
-                if(flag==1):
-                    break
-            return (bestval,besty,bestx)
-        
-def rec(presboard,player,depth):
-    if(depth==2):
-        worstval=64
-        (besty,bestx)=(-2,-2)
-        forthisrec=copy(presboard)
-        #Computer's chance
-        for i in range(8):
-            for j in range(8):
-                if(issafe(i,j,2,forthisrec)):
-                        change(i,j,2,forthisrec)
-                        value=find(2,forthisrec)-find(1,forthisrec)
-                        if(value<worstval):
-                            worstval=value
-                            (besty,bestx)=(i,j)
-                            forthisrec=copy(presboard)
-        return (worstval,besty,bestx)
-    else:
-        if(player==1):
-            bestval=-64
-            (besty,bestx)=(-2,-2)
-            rety,retx=0,0
-            forthisrec=copy(presboard)
-            for i in range(8):
-                for j in range(8):
-                    if(issafe(i,j,1,forthisrec)):
-                            change(i,j,1,forthisrec)
-                            (value,rety,retx)=rec(forthisrec,2,depth+1)
-                            if(value>bestval):
-                                bestval=value
-                                (besty,bestx)=(i,j)
-                            forthisrec=copy(presboard)
-            return (bestval,besty,bestx)
-        if(player==2):
-            bestval=-64
-            (besty,bestx)=(-2,-2)
-            rety,retx=0,0
-            forthisrec=copy(presboard)
-            for i in range(8):
-                for j in range(8):
-                    if(issafe(i,j,2,forthisrec)):
-                            change(i,j,2,forthisrec)
-                            (value,rety,retx)=rec(forthisrec,1,depth)
-                            if(value>bestval):
-                                bestval=value
-                                (besty,bestx)=(i,j)
-                            forthisrec=copy(presboard)
-            return (bestval,besty,bestx)
-def change(y,x,player,boards):
-    #changing nearest position of same colour to the right
-    flag=False
-    pos=-1
-    for i in range(x+2,8):
-        if(boards[y][i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(x+1,pos):
-            if(boards[y][i]!=player%2+1):
-                flag=False
-                break
-    if(flag==True):
-        for i in range(x+1,pos):
-            boards[y][i]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour to the left
-    for i in range(x-2,-1,-1):
-        if(boards[y][i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(pos+1,x):
-            if(boards[y][i]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(pos+1,x):
-            boards[y][i]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour to the bottom
-    for i in range(y+2,8):
-        if(boards[i][x]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(y+1,pos):
-            if(boards[i][x]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(y+1,pos):
-            boards[i][x]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour to the top
-    for i in range(y-2,-1,-1):
-        if(boards[i][x]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(pos+1,y):
-            if(boards[i][x]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(pos+1,y):
-            boards[i][x]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour on top right
-    for i in range(2,9):
-        if(x+i>7 or y-i<0):
-            break
-        if(boards[y-i][x+i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(1,pos):
-            if(boards[y-i][x+i]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(1,pos):
-            boards[y-i][x+i]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour on top left
-    for i in range(2,9):
-        if(x-i<0 or y-i<0):
-            break
-        if(boards[y-i][x-i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(1,pos):
-            if(boards[y-i][x-i]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(1,pos):
-            boards[y-i][x-i]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour on bottom right
-    for i in range(2,9):
-        if(x+i>7 or y+i>7):
-            break
-        if(boards[y+i][x+i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(1,pos):
-            if(boards[y+i][x+i]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(1,pos):
-            boards[y+i][x+i]=player
-    flag=False
-    pos=-1
-    #changing nearest position of same colour on bottom left
-    for i in range(2,9):
-        if(x-i<0 or y+i>7):
-            break
-        if(boards[y+i][x-i]==player):
-            pos=i
-            break
-    if(pos!=-1):
-        flag=True
-        for i in range(1,pos):
-            if(boards[y+i][x-i]!=player%2+1):
-                flag=False
-    if(flag==True):
-        for i in range(1,pos):
-            boards[y+i][x-i]=player
 
-def changereal(y,x,player):
+def change(y,x,player):
     flag=False
     pos=-1
     boards=[[0 for i in range(8)]for i in range(8)]
@@ -607,6 +308,7 @@ def changereal(y,x,player):
         for i in range(1,pos):
             board[y+i][x-i]=player
             putpiece(player,y+i,x-i)
+
 def find(player,thisboard):
     c=0
     for i in range(8):
@@ -615,6 +317,53 @@ def find(player,thisboard):
                 c+=1
     return c
 
+def think():
+    global final
+    final=0
+    boards=[[0 for i in range(8)]for i in range(8)]
+    for i in range(8):
+        for j in range(8):
+            boards[i][j]=board[i][j]
+    total=0
+    bestx,besty=0,0
+    besttotal=-64
+    for i in range(8):
+        for j in range(8):
+            if(issafe(i,j,2,boards)):
+                rec(2,1,-64,0,boards)
+                if(besttotal<final):
+                    besttotal=final
+                    besty=i
+                    bestx=j
+    return (besty,bestx)
+def rec(player,number,maxormin,total,presboard):
+    if(number==2):
+        final=total
+        return
+    if(player==2):
+        for i in range(8):
+            for j in range(8):
+                if(issafe(i,j,2,presboard)):
+                    presboard[i][j]=2
+                    if(maxormin<find(2,presboard)-find(1,presboard)):
+                        maxormin=find(2,presboard)-find(1,presboard)
+                        posy=i
+                        posx=j
+                    presboard[i][j]=0
+        presboard[posy][posx]=2
+        rec(1,number+1,-64,total+maxormin,presboard)
+    else:
+        for i in range(8):
+            for j in range(8):
+                if(issafe(i,j,1,presboard)):
+                    presboard[i][j]=1
+                    if(maxormin<find(2,presboard)-find(1,presboard)):
+                        maxormin=find(2,presboard)-find(1,presboard)
+                        posy=i
+                        posx=j
+                    presboard[i][j]=0
+        presboard[posy][posx]=1
+        rec(2,number+1,-64,total-maxormin,presboard)
 def pixelstocoordinates(xx,yy):
     xp=(xx-int(XMARGIN))//int(BOXSIZE+GAPSIZE)
     yp=(yy-int(YMARGIN))//int(BOXSIZE+GAPSIZE)
@@ -651,7 +400,7 @@ def start():
 def win(now,nob):
     gameover=True
     if(now>nob):
-        toprint="Computer wins."
+        toprint="Player 2 wins."
     elif(nob>now):
         toprint="Player 1 wins."
     else:
@@ -661,7 +410,7 @@ def win(now,nob):
     FinalRectObj = FinalSurfaceObj.get_rect()
     FinalRectObj.center = (WINDOWWIDTH/2,WINDOWHEIGHT/2)
     StartWin.blit(FinalSurfaceObj,FinalRectObj)
-def gameplay(method):
+def gameplay():
     global FPSClock,StartWin,n,total,gameover
     FPSCLOCK=pygame.time.Clock()
     pygame.init()
@@ -696,7 +445,7 @@ def gameplay(method):
     WhiteRectObj = WhiteSurfaceObj.get_rect()
     WhiteRectObj.center = (WINDOWWIDTH/2+75,110)
     TurnObj = pygame.font.Font('calibri.ttf', 40)
-    TurnSurfaceObj = TurnObj.render('  Player\'s turn  ', True,BLACK,WHITE)
+    TurnSurfaceObj = TurnObj.render('Player \'s turn', True,BLACK,WHITE)
     TurnRectObj = TurnSurfaceObj.get_rect()
     TurnRectObj.center = (WINDOWWIDTH/2,175)
     StartWin.blit(BlackSurfaceObj,BlackRectObj)
@@ -704,32 +453,32 @@ def gameplay(method):
     StartWin.blit(TurnSurfaceObj,TurnRectObj)
     while(True):
         for event in pygame.event.get():
-            if(n==total):
-                win(now,nob)
-            pr='    Player\'s turn     '
+            pr='Player\'s Turn'
             TurnObj = pygame.font.Font('calibri.ttf', 40)
             TurnSurfaceObj = TurnObj.render(pr, True,BLACK,WHITE)
             TurnRectObj = TurnSurfaceObj.get_rect()
             TurnRectObj.center = (WINDOWWIDTH/2,175)
             if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
-                    pygame.quit()
-                    sys.exit()
-            elif event.type == MOUSEMOTION and gameover==False:
+                pygame.quit()
+                sys.exit()
+            elif event.type == MOUSEMOTION:
                 mx, my = event.pos
                 if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8):
                     px,py=mousex,mousey
                 mousex,mousey=pixelstocoordinates(mx,my)
-                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8 and gameover==False):
+                if(mousex>=0 and mousey>=0 and mousex<8 and mousey<8 and not gameover):
                     highlight(mousex,mousey,px,py)
-            elif event.type == MOUSEBUTTONUP and gameover==False:
+            elif event.type == MOUSEBUTTONUP:
                 mx, my = event.pos
                 mousex,mousey=pixelstocoordinates(mx,my)
-                if(issafe(mousey,mousex,1,board)):
+                if(not(ispossible(1))):
+                    total+=1
+                    n+=1
+                elif(issafe(mousey,mousex,1,board)):
                     board[mousey][mousex]=1
                     n+=1
-                    changereal(mousey,mousex,1)
+                    change(mousey,mousex,1)
                     putpiece(1,mousey,mousex)
-                    #printf()
                     nob=find(1,board)
                     now=find(2,board)
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
@@ -746,43 +495,20 @@ def gameplay(method):
                     StartWin.blit(BlackSurfaceObj,BlackRectObj)
                     StartWin.blit(WhiteSurfaceObj,WhiteRectObj)
                     StartWin.blit(TurnSurfaceObj,TurnRectObj)
-                    if(n==total):
-                        win(now,nob)
-                    if(not(ispossible(2))):
-                        total+=1
-                        n+=1
-                        continue
-                        StartWin.blit(ScoreImg,ScoreRect)
-                    pygame.draw.circle(StartWin,COLOR1,(int(WINDOWWIDTH/2-75),65),int(BOXSIZE/2-3))
-                    pygame.draw.circle(StartWin,COLOR2,(int(WINDOWWIDTH/2+75),65),int(BOXSIZE/2-3))
-                    BlackObjs = pygame.font.Font('calibri.ttf', 40)
-                    BlackSurfaceObjs = BlackObjs.render(str(nob), True,BLACK,WHITE)
-                    BlackRectObjs = BlackSurfaceObjs.get_rect()
-                    BlackRectObjs.center = (WINDOWWIDTH/2-75,110)
-                    WhiteObjs = pygame.font.Font('calibri.ttf', 40)
-                    WhiteSurfaceObjs = WhiteObjs.render(str(now), True,WHITE,GRAY)
-                    WhiteRectObjs = WhiteSurfaceObjs.get_rect()
-                    WhiteRectObjs.center = (WINDOWWIDTH/2+75,110)
-                    TurnObjs = pygame.font.Font('calibri.ttf', 40)
-                    TurnSurfaceObjs = TurnObjs.render('Computer\'s turn', True,BLACK,WHITE)
-                    TurnRectObjs = TurnSurfaceObjs.get_rect()
-                    TurnRectObjs.center = (WINDOWWIDTH/2,175)
-                    StartWin.blit(BlackSurfaceObjs,BlackRectObjs)
-                    StartWin.blit(WhiteSurfaceObjs,WhiteRectObjs)
-                    StartWin.blit(TurnSurfaceObjs,TurnRectObjs)
-                    pygame.display.update()
-                    pygame.time.delay(1000)
-                    if(method==1):
-                        (moy,mox)=thinks()
-                    else:
-                        (moy,mox)=think()
-                    board[moy][mox]=2
+                else:
+                    continue
+                if(not(ispossible(2))):
+                    total+=1
                     n+=1
-                    changereal(moy,mox,2)
-                    putpiece(2,moy,mox)
+                    continue
+                else:
+                    (mousey,mousex)=think()
+                    board[mousey][mousex]=2
+                    n+=1
+                    change(mousey,mousex,2)
+                    putpiece(2,mousey,mousex)
                     nob=find(1,board)
                     now=find(2,board)
-                    #printf()
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()
@@ -799,13 +525,8 @@ def gameplay(method):
                     StartWin.blit(TurnSurfaceObj,TurnRectObj)
                     if(n==total):
                         win(now,nob)
-                    if(not(ispossible(1))):
-                        total+=1
-                        n+=1
-                        win(now,nob)
-                        break
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 board=[[0 for i in range(8)] for i in range(8)]
 start()
-ChooseWin()
+gameplay()
