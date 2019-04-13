@@ -22,10 +22,54 @@ YELLOW = (255, 255, 0)
 ORANGE = (255, 128, 0)
 PURPLE = (255, 0, 255,128)
 LIGHTORANGE=(255,160,122)
+CYAN = (0, 255, 255)
+TAN=(210,180,140)
 BOARDCOLOR=NAVYBLUE
 BOXCOLOR=ORANGE
 COLOR1=BLACK
 COLOR2=WHITE
+def ChooseWin():
+    global FPSClock,FirstWin,OthelloImg
+    pygame.font.init()
+    FPSClock=pygame.time.Clock()
+    FirstWin=pygame.display.set_mode((WINDOWHEIGHT,WINDOWWIDTH))
+    OthelloImg=pygame.image.load('Othello.jpg')
+    OthelloImg = pygame.transform.scale(OthelloImg, (700, 700))
+    MinimaxAlphaImg=pygame.image.load('Button.png')
+    MinimaxAlphaRect=MinimaxAlphaImg.get_rect()
+    MinimaxAlphaObj = pygame.font.Font('calibri.ttf', 32)
+    MinimaxAlphaSurfaceObj = MinimaxAlphaObj.render('Minimax', True,BLACK,TAN)
+    MinimaxAlphaRectObj = MinimaxAlphaSurfaceObj.get_rect()
+    MinimaxAlphaRectObj.center = (WINDOWWIDTH/2,300)
+    PropagationImg=pygame.image.load('Button.png')
+    PropagationRect=PropagationImg.get_rect()
+    PropagationObj = pygame.font.Font('calibri.ttf', 32)
+    PropagationSurfaceObj = PropagationObj.render('Back Propagation', True,BLACK,TAN)
+    PropagationRectObj = PropagationSurfaceObj.get_rect()
+    PropagationRectObj.center = (WINDOWWIDTH/2,400)
+    pygame.init()
+    pygame.display.set_caption('OTHELLO')
+    FirstWin.fill(WHITE)
+    MinimaxAlphaRect.center=(WINDOWWIDTH/2,300)
+    PropagationRect.center=(WINDOWWIDTH/2,400)
+    FirstWin.blit(OthelloImg,(0,0))
+    FirstWin.blit(MinimaxAlphaImg,MinimaxAlphaRect)
+    FirstWin.blit(PropagationImg,PropagationRect)
+    FirstWin.blit(MinimaxAlphaSurfaceObj,MinimaxAlphaRectObj)
+    FirstWin.blit(PropagationSurfaceObj,PropagationRectObj)
+    while(True):
+        for event in pygame.event.get():
+            if(event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE)):
+                pygame.quit()
+            elif event.type == MOUSEBUTTONUP:
+                mx, my = event.pos
+                FirstWin.blit(OthelloImg,(0,0))
+                if(MinimaxAlphaRect.collidepoint(mx,my)):
+                    gameplay(1)
+                elif(PropagationRect.collidepoint(mx,my)):
+                    gameplay(2)
+        pygame.display.update()
+        FPSClock.tick(FPS)
 def highlight(x,y,prx,pry):
     #print(x,y)
     if n==total:
@@ -172,12 +216,77 @@ def issafe(y,x,player,givenboard):
         #print("Bottom Left")
         return True
     return False
-
+def printf():
+    for i in range(8):
+        for j in range(8):
+            print(board[i][j],end=" ")
+        print()
+    print()
+def thinks():
+    boards=copy(board)
+    (values,y,x)=minimax(boards,2,0,-64,64)
+    return (y,x)
 def think():
     boards=copy(board)
     (values,y,x)=rec(boards,2,1)
     return (y,x)
-
+def minimax(presboard,player,depth,alpha,beta):
+    if(depth==6):
+        forthisrec=presboard
+        value=find(2,forthisrec)-find(1,forthisrec)
+        return (value,-2,-2)
+    else:
+        if(player==1):#Player:Minimizing Player
+            bestval=64
+            (besty,bestx)=(-2,-2)
+            rety,retx=0,0
+            count=0
+            flag=0
+            forthisrec=copy(presboard)
+            for i in range(8):
+                for j in range(8):
+                    if(issafe(i,j,1,forthisrec)):
+                            if(count==0):
+                                besty,bestx=i,j
+                                count=1
+                            change(i,j,1,forthisrec)
+                            (value,rety,retx)=minimax(forthisrec,2,depth+1,alpha,beta)
+                            if(value<bestval):
+                                bestval=value
+                                (besty,bestx)=(i,j)
+                            beta=min(beta,bestval)
+                            if(beta<=alpha):
+                                flag=1
+                            forthisrec=copy(presboard)
+                if(flag==1):
+                    break
+            return (bestval,besty,bestx)
+        elif(player==2): #Computer:Maximizing Player 
+            bestval=-64
+            (besty,bestx)=(-2,-2)
+            rety,retx=0,0
+            count=0
+            flag=0
+            forthisrec=copy(presboard)
+            for i in range(8):
+                for j in range(8):
+                    if(issafe(i,j,2,forthisrec)):
+                        if(count==0):
+                            besty,bestx=i,j
+                            count=1
+                        change(i,j,2,forthisrec)
+                        (value,rety,retx)=minimax(forthisrec,1,depth+1,alpha,beta)
+                        if(value>bestval):
+                            bestval=value
+                            (besty,bestx)=(i,j)
+                        alpha=max(alpha,bestval)
+                        if(beta<=alpha):
+                            flag=1
+                        forthisrec=copy(presboard)
+                if(flag==1):
+                    break
+            return (bestval,besty,bestx)
+        
 def rec(presboard,player,depth):
     if(depth==2):
         worstval=64
@@ -552,7 +661,7 @@ def win(now,nob):
     FinalRectObj = FinalSurfaceObj.get_rect()
     FinalRectObj.center = (WINDOWWIDTH/2,WINDOWHEIGHT/2)
     StartWin.blit(FinalSurfaceObj,FinalRectObj)
-def gameplay():
+def gameplay(method):
     global FPSClock,StartWin,n,total,gameover
     FPSCLOCK=pygame.time.Clock()
     pygame.init()
@@ -615,15 +724,12 @@ def gameplay():
             elif event.type == MOUSEBUTTONUP and gameover==False:
                 mx, my = event.pos
                 mousex,mousey=pixelstocoordinates(mx,my)
-                if(not(ispossible(1))):
-                    total+=1
-                    n+=1
-                    continue
                 if(issafe(mousey,mousex,1,board)):
                     board[mousey][mousex]=1
                     n+=1
                     changereal(mousey,mousex,1)
                     putpiece(1,mousey,mousex)
+                    #printf()
                     nob=find(1,board)
                     now=find(2,board)
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
@@ -666,14 +772,17 @@ def gameplay():
                     StartWin.blit(TurnSurfaceObjs,TurnRectObjs)
                     pygame.display.update()
                     pygame.time.delay(1000)
-                    moy,mox=think()
+                    if(method==1):
+                        (moy,mox)=thinks()
+                    else:
+                        (moy,mox)=think()
                     board[moy][mox]=2
                     n+=1
                     changereal(moy,mox,2)
                     putpiece(2,moy,mox)
                     nob=find(1,board)
                     now=find(2,board)
-                    print()
+                    #printf()
                     BlackObj = pygame.font.Font('calibri.ttf', 40)
                     BlackSurfaceObj = BlackObj.render(str(nob), True,BLACK,WHITE)
                     BlackRectObj = BlackSurfaceObj.get_rect()
@@ -690,8 +799,13 @@ def gameplay():
                     StartWin.blit(TurnSurfaceObj,TurnRectObj)
                     if(n==total):
                         win(now,nob)
+                    if(not(ispossible(1))):
+                        total+=1
+                        n+=1
+                        win(now,nob)
+                        break
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 board=[[0 for i in range(8)] for i in range(8)]
 start()
-gameplay()
+ChooseWin()
